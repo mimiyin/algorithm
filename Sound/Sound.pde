@@ -39,7 +39,7 @@ int beanMin = 0;
 
 
 void setup() {
-  size(displayWidth, displayHeight);
+  size(600, 400);
   colorMode(HSB, colorMax);
   background(bgColor);
   noFill();

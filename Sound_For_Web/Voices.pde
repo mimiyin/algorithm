@@ -31,12 +31,13 @@ class Voice {
   float beat = 0;
   float voiceYAnchor = height/(voicesMax+1);
 
-  int pitch;
+  var notes = new Array();
+  var pitch;
 
   Voice(int index) {
 
     voiceIndex = index;
-    pitch = pitches[0];
+    pitch = pitches[int(random(pitches.length))];
 
     println("NEW!!! " + voiceIndex + "\tPITCH: " + pitch);
 
@@ -59,7 +60,7 @@ class Voice {
 
     //Store curve
     switch(waveIndex) {
-    case 1:
+      case 1:
       newSine = new SineWave(modFreq); 
       break;  
     case 2:
@@ -86,9 +87,9 @@ class Voice {
     int voiceY = int((voiceYAnchor * voiceIndex) + voiceYAnchor + 10);
 
     if ( counter >= beat) {
-      for(int i = 0; i < beat; i++) {
-        pitch.stop(); // Send a Midi nodeOff
-      } 
+//      for (int i = 0; i < notes.length; i++) {
+//        notes[i].pause(); // Send a Midi nodeOff
+//      } 
       switch(waveIndex) {
       case 1:
         beat = newSine.run(); 
@@ -113,7 +114,9 @@ class Voice {
     if ( counter == 0 && beat > 0) {
       fill(100);
       rect(x, voiceY, 10, 20);
-      pitch.play(); // Send a Midi noteOn
+      var note = new Audio(pitch);
+      note.play();
+      notes.push(note);
     }
   }
 }

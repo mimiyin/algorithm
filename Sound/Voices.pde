@@ -75,7 +75,7 @@ class Voice {
     }
 
     //Pick a Duration
-    duration = int(random(100, 1000));
+    duration = int(random(500, 1000));
 
 
     //println("COLOR: " + colorIndex + "\t" + "MOD FREQ: " + modFreq + "\t" + "DURATION: " + duration + "\t" + "WHICH CURVE: " + waveIndex);

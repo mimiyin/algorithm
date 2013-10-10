@@ -17,10 +17,9 @@ float[] rollDie(int divisions) {
 }
 
 int howManyToAdd(int howManyNow) {
-    
+
   // How many voices can I activate max?
-  int howManyToAdd = constrain(voicesMax - howManyNow, 1, voicesMax);
-  println("HOW MANY NOW? " + howManyNow);
+  int howManyToAdd = constrain(voicesMax - howManyNow, 0, voicesMax);
   
   howManyToAdd = pickOne(howManyToAdd, voicesTH);
   return howManyToAdd;

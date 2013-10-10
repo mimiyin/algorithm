@@ -117,7 +117,7 @@ void cueVoices() {
     manHowManyToAdd = 1;
   }
   else {
-    howManyToAdd = howManyToAdd(howManyNow);
+    howManyToAdd = addHowMany(howManyToAdd);
     println("HOW MANY TO ADD? " + howManyToAdd);
     voices = addVoices(howManyToAdd, voices);
   }

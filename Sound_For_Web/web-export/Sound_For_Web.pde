@@ -117,7 +117,7 @@ void cueVoices() {
     manHowManyToAdd = 1;
   }
   else {
-    howManyToAdd = howManyToAdd(howManyNow);
+    howManyToAdd = addHowMany(howManyToAdd);
     println("HOW MANY TO ADD? " + howManyToAdd);
     voices = addVoices(howManyToAdd, voices);
   }
@@ -170,14 +170,14 @@ float[] rollDie(int divisions) {
  return thresholds; 
 }
 
-int howManyToAdd(int howManyNow) {
+int addHowMany(int howManyNow) {
     
   // How many voices can I activate max?
-  int howManyToAdd = constrain(voicesMax - howManyNow, 1, voicesMax);
+  int numToAdd = constrain(voicesMax - howManyNow, 1, voicesMax);
   println("HOW MANY NOW? " + howManyNow);
   
-  howManyToAdd = pickOne(howManyToAdd, voicesTH);
-  return howManyToAdd;
+  numToAdd = pickOne(numToAdd, voicesTH);
+  return numToAdd;
 }
 
 int pickOne(int maxValue, float[] divvyRange) {
@@ -187,19 +187,19 @@ int pickOne(int maxValue, float[] divvyRange) {
   
   
   // Load a new array of THs with randomly picked number
-  float[] pickOne = new float[maxValue+1];
+  float[] pickOnes = new float[maxValue+1];
   for(int i = 0; i < maxValue; i++) {
-    if(i == maxValue-1) pickOne[i] = pickANumber;
-    else pickOne[i] = divvyRange[i];
+    if(i == maxValue-1) pickOnes[i] = pickANumber;
+    else pickOnes[i] = divvyRange[i];
   }
   
   // Sort it
-  //pickOne = sort(pickOne);
+  pickOnes = sort(pickOnes);
   int pickedOne = 0;
   
   // The index above pickANumber is the winner
   for (int i = 0; i < maxValue; i++) {
-    if (pickOne[i] == pickANumber) {
+    if (pickOnes[i] == pickANumber) {
       pickedOne = i;
     }
   }
@@ -238,12 +238,13 @@ class Voice {
   float beat = 0;
   float voiceYAnchor = height/(voicesMax+1);
 
-  int pitch;
+  var notes = new Array();
+  var pitch;
 
   Voice(int index) {
 
     voiceIndex = index;
-    pitch = pitches[0];
+    pitch = pitches[int(random(pitches.length))];
 
     println("NEW!!! " + voiceIndex + "\tPITCH: " + pitch);
 
@@ -266,7 +267,7 @@ class Voice {
 
     //Store curve
     switch(waveIndex) {
-    case 1:
+      case 1:
       newSine = new SineWave(modFreq); 
       break;  
     case 2:
@@ -293,9 +294,9 @@ class Voice {
     int voiceY = int((voiceYAnchor * voiceIndex) + voiceYAnchor + 10);
 
     if ( counter >= beat) {
-      for(int i = 0; i < beat; i++) {
-        pitch.stop(); // Send a Midi nodeOff
-      } 
+//      for (int i = 0; i < notes.length; i++) {
+//        notes[i].pause(); // Send a Midi nodeOff
+//      } 
       switch(waveIndex) {
       case 1:
         beat = newSine.run(); 
@@ -320,7 +321,9 @@ class Voice {
     if ( counter == 0 && beat > 0) {
       fill(100);
       rect(x, voiceY, 10, 20);
-      pitch.play(); // Send a Midi noteOn
+      var note = new Audio(pitch);
+      note.play();
+      notes.push(note);
     }
   }
 }

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 	<head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-		<title>Sound_For_Web : Built with Processing and Processing.js</title>
+		<title>Auralize</title>
 		<link rel="icon"  type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAQAAVzABAEAjBQAaDwYAWjUGAGE6CQBrQQ0ATS8PAFhAJwBUQC8AbFI6AHVXPACBZk4A4NrWAPb19QAAAAAAAMmZmZmZmgAJIwAAAAAAcMIjPjA+PjAKpxIuMDMzMAm0Ii4zMzMACaIiLt3dMAAJtyIuIzPQAAm0Un5yM+IzKLRkfncy4iIotRF+dyLkIiq0QX53F+EiGrQUTkd34iIatEVu7u5iIVrBVVRBRFRVbAtGZGZla2uwAMu7u7u8vADAAwAAgAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAADAAwAA" />
 		<meta name="Generator" content="Processing" />
+		<script type="text/javascript" src="jquery-1.9.0.min.js"></script>
 		<script type="text/javascript" src="css_browser_selector.js"></script>
 		<!-- - - - - - - - - - - - - - - - - - - - - 
 		+
@@ -53,7 +54,7 @@
 			function getProcessingSketchId () { return 'SoundForWeb'; }
 			Processing.logger = console;
 			function isSafari() {
-				  return false;//$('html').hasClass("safari");
+				  return $('html').hasClass("safari");
 					}
 			var audioType = isSafari() ? ".mp3" : ".ogg";
 			var pitches = new Array();

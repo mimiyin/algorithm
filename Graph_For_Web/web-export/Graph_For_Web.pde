@@ -5,12 +5,8 @@ int wMult = 0;
 float[] voicesTH;
 float[] colorsTH;
 float[] wavesTH;
-
-
-int voicesMax = 5;
 ArrayList voices = new ArrayList();
-boolean[] voiceRoster = new boolean[voicesMax];
-
+int voicesMax = 5;
 int colorsMax = 7;
 int wavesMax = 4;
 int howManyNow = 0;
@@ -18,20 +14,15 @@ int howManyToAdd = 0;
 int colorMax = 100;
 
 boolean manualOverride = false;
+boolean stacked = true;
 boolean manualKill = false;
-int manHowManyToAdd = 0;
+int manHowManyToAdd = 1;
 boolean manModFreq = true;
 int manWaveIndex = 1;
 
 
 int bgColor = 0;
 PFont font;
-
-
-int number = 0;
-int value = 90;
-int beanMin = 0;
-
 
 void setup() {
   size(1280, 900);
@@ -55,42 +46,46 @@ void draw() {
 
   //IF THERE ARE ACTIVE VOICES...
   if (howManyNow > 0) {
-    boolean hasRemoved = false;
     //ITERATE COUNTERS FOR EACH VOICE
     for (int i = howManyNow-1; i >=0; i--) {
       Voice thisVoice = (Voice)voices.get(i);
       int duration = thisVoice.duration;
-      int lifespan = thisVoice.lifespan;
-      if (lifespan > duration || manualKill) {
+      int counter = thisVoice.counter;
+      if (counter > duration || manualKill) {
         //KILL THE VOICE & START UP NEW ONES
         voices.remove(i);
-        hasRemoved = true;
-        voiceRoster[thisVoice.voiceIndex] = false;
         howManyNow--;
+        cueVoices();
         manualKill = false;
       }
       //ITERATE COUNTER FOR EACH VOICE
-      else thisVoice.lifespan++;
+      else thisVoice.counter++;
     }
-    if(hasRemoved)
-       cueVoices();
   }
   else cueVoices();
 
 
   //println( "HOW MANY VOICES? " + voices.size() );
 
-  float beat = 0;
+  float totalY = 0;
+  float posTotalY = 0;
+  float negTotalY = 0;
+  float y = 0;
 
-  //RUN EACH ACTIVE VOICE
+  //DRAW CURVE FOR EACH ACTIVE VOICE
   for (int i = 0; i < howManyNow; i++) {
     Voice thisVoice = (Voice)voices.get(i);
-    //println("VOICE: " + i);
-    thisVoice.run();
-  }
-
-  x++;
-
+    color strokeColor = thisVoice.strokeColor;
+    float modFreq = thisVoice.modFreq;
+    int waveIndex = thisVoice.waveIndex;
+    y = drawOverlapped(thisVoice, waveIndex, strokeColor, 0);
+    if (stacked) {
+      totalY = drawStacked(thisVoice, waveIndex, strokeColor, y, posTotalY, negTotalY);
+      if (totalY >=0 ) posTotalY = totalY;
+      else negTotalY = totalY;
+        }
+      }
+  x+=3;
   if (x > width*(wMult+1)) {
     wMult++;
     println("WIDTH MULTIPLIER: " + wMult);
@@ -100,14 +95,56 @@ void draw() {
 }
 
 void updateInstructions() {
-  fill(10);
+  fill(0);
   noStroke();
-  rect(0, 0, width, 100);
+  rect(0, 0, 1000, 140);
   fill(colorMax);
   text("ENTER: Manual \t SPACE: Modulate Freq \t +/-: No. Voices to Add \t 1: Sine \t 2: Square \t 3: Sawtooth \t 4: Tan \t TAB: Draw Stacked", 20, 20);
   text("MANUAL ON: " + manualOverride + "\t MANUAL KILL: " + manualKill, 20, 40);
   text("WHICH WAVE: " + manWaveIndex + "\t MOD F: " + manModFreq, 20, 60);
   text("NO. VOICES: " + howManyNow + "\t ADD: " + manHowManyToAdd, 20, 80);
+  text("STACKED: " + stacked, 20, 100);
+}
+
+float drawOverlapped(Voice thisVoice, int waveIndex, color strokeColor, float y) {
+  int anchor = int(height/4);
+
+  //fetch correct curve
+  switch(waveIndex) {
+  case 1:
+    y = thisVoice.newSine.run();
+    //drawLine( anchor, y, strokeColor );
+    break;  
+  case 2:
+    y = thisVoice.newSquare.run();
+    //drawLine( anchor, y, strokeColor ); 
+    break;  
+  case 3:
+    y = thisVoice.newSaw.run();
+    //drawLine( anchor, y, strokeColor );
+    break;
+  case 4:
+    y = thisVoice.newTan.run();
+    //drawLine( anchor, y, strokeColor ); 
+    break;  
+  } 
+
+  return y;
+}
+
+float drawStacked(Voice thisVoice, int waveIndex, color strokeColor, float y, float posTotalY, float negTotalY) {
+  int anchor = int(height/2);
+  float totalY = 0;
+  
+  if(y >=0) {
+    totalY = posTotalY + y;  
+  }
+  else if(y < 0) {
+    totalY = negTotalY + y;
+  }
+  
+  drawLine( anchor, totalY, strokeColor );
+  return totalY;
 }
 
 void cueVoices() {
@@ -117,17 +154,22 @@ void cueVoices() {
     manHowManyToAdd = 1;
   }
   else {
-    howManyToAdd = addHowMany(howManyToAdd);
-    println("HOW MANY TO ADD? " + howManyToAdd);
+    howManyToAdd = addHowMany(howManyNow);
     voices = addVoices(howManyToAdd, voices);
   }
   howManyNow = voices.size();
 
-  //println("HOW MANY VOICES? " + howManyNow + "\t" + "HOW MANY TO ADD? " + howManyToAdd);
+  println("HOW MANY VOICES? " + howManyNow + "\t" + "HOW MANY TO ADD? " + howManyToAdd);
+}
+
+void drawLine(float anchor, float y, color strokeColor) {
+  stroke(strokeColor);
+  line(x, anchor, x, anchor - int(y));
 }
 
 void keyPressed() {
   if (key == ENTER) manualOverride = !manualOverride;
+  if (key == TAB) stacked = !stacked;
   if (key == 'k') manualKill = true;
 
   if (key == CODED) {
@@ -209,125 +251,66 @@ ArrayList addVoices(int howManyToAdd, ArrayList voices) {
   //Create voices
   // Store values for color, whether to modulate frequency, duration, duration counter and curve type
   for (int i = 0; i < howManyToAdd; i++) {
-    for (int j = 0; j < voiceRoster.length; j++) {
-      boolean isOff = !voiceRoster[j];
-      if (isOff) {
-        voiceRoster[j] = true;
-        voices.add(new Voice(j));
-      }
-    }
+    voices.add(new Voice(i));
   }
   return voices;
 }
 
-
 class Voice {
-  int voiceIndex = 0;
   int colorIndex = 0;
   color strokeColor = color(100, 180, 180, 50);
   float modFreq = -1;
   int waveIndex = 1;
-  Class<?> newWave;
   SineWave newSine;
   TanWave newTan;
   SquareWave newSquare;
   SawTooth newSaw;
   int duration = 1000;
-  int lifespan = 0;  
-  int counter = 0;
-  float beat = 0;
-  float voiceYAnchor = height/(voicesMax+1);
-
-  var notes = new Array();
-  var pitch;
-
+  int counter = 0;  
+  
   Voice(int index) {
-
-    voiceIndex = index;
-    pitch = pitches[int(random(pitches.length))];
-
-    println("NEW!!! " + voiceIndex + "\tPITCH: " + pitch);
-
     //Select Color
     colorIndex = pickOne(colorsMax, colorsTH);
     int hueValue = int(colorIndex*colorMax/voicesMax);
     strokeColor = color(hueValue, 180, 180, 50);
     //strokeColor = color(0, 0, 100, 100);
-
+    
     //Modulate Frequency?
     modFreq = random(0, 1);
     if (manualOverride) {
-      if (manModFreq) modFreq = 1;
+      if(manModFreq) modFreq = 1;
       else modFreq = 0;
-    }
-
+      }
+    
     //Which Curve?
     waveIndex = pickOne(wavesMax, wavesTH);
     if (manualOverride) waveIndex = manWaveIndex;
-
+    
     //Store curve
     switch(waveIndex) {
-      case 1:
+     case 1:
       newSine = new SineWave(modFreq); 
       break;  
-    case 2:
+     case 2:
       newSquare = new SquareWave(modFreq); 
       break;  
-    case 3:
+     case 3:
       newSaw = new SawTooth(modFreq); 
       break;  
-    case 4:
+     case 4:
       newTan = new TanWave(modFreq); 
-      break;
+      break;     
     }
-
+    
     //Pick a Duration
     duration = int(random(100, 1000));
+    
+    //Kick off Duration counter for each voice
+    counter = 0;
 
-
-    //println("COLOR: " + colorIndex + "\t" + "MOD FREQ: " + modFreq + "\t" + "DURATION: " + duration + "\t" + "WHICH CURVE: " + waveIndex);
-  }
-
-  void run() {
-    counter++;
-    //println("VOICE: " + voiceIndex + "\tCOUNTER: " + counter + "\tBEAT: " + beat);
-    int voiceY = int((voiceYAnchor * voiceIndex) + voiceYAnchor + 10);
-
-    if ( counter >= beat) {
-//      for (int i = 0; i < notes.length; i++) {
-//        notes[i].pause(); // Send a Midi nodeOff
-//      } 
-      switch(waveIndex) {
-      case 1:
-        beat = newSine.run(); 
-        break;
-      case 2:
-        beat = newSquare.run(); 
-        break;
-      case 3:
-        beat = newSaw.run(); 
-        break;
-      case 4:
-        beat = newTan.run();
-        break;
-      }
-      if (beat >= 0)
-        beat += 30;
-      else
-        beat -= 30;
-      counter = 0;
-    }
-
-    if ( counter == 0 && beat > 0) {
-      fill(100);
-      rect(x, voiceY, 10, 20);
-      var note = new Audio(pitch);
-      note.play();
-      notes.push(note);
-    }
+    println("COLOR: " + colorIndex + "\t" + "MOD FREQ: " + modFreq + "\t" + "DURATION: " + duration + "\t" + "WHICH CURVE: " + waveIndex);    
   }
 }
-
 class Wave {
   float x = 0;
   float xFactor = 0.01;
